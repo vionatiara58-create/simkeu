@@ -1,0 +1,1295 @@
+<!doctype html>
+<html lang="id" style="height: 100%;">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistem Keuangan Ekstrakurikuler</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="/_sdk/data_sdk.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <style>
+    body {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow-x: hidden;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    .gradient-bg {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+      position: relative;
+      overflow: hidden;
+    }
+    .gradient-bg::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+      animation: pulse 15s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+    .card-hover {
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .card-hover::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
+      transform: translateX(-100%);
+      transition: transform 0.6s;
+    }
+    .card-hover:hover::after {
+      transform: translateX(100%);
+    }
+    .card-hover:hover {
+      transform: translateY(-8px) scale(1.02);
+      box-shadow: 0 25px 35px -5px rgba(0, 0, 0, 0.2), 0 15px 15px -5px rgba(0, 0, 0, 0.1);
+    }
+    .modal-backdrop {
+      background-color: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+    }
+    .glass-effect {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+    }
+    .table-responsive {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .animate-fade-in-up {
+      animation: fadeInUp 0.6s ease-out;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-20px); }
+    }
+    .float-animation {
+      animation: float 3s ease-in-out infinite;
+    }
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    .bounce-animation {
+      animation: bounce 2s ease-in-out infinite;
+    }
+    @keyframes rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .rotate-animation {
+      animation: rotate 20s linear infinite;
+    }
+    @keyframes slideInRight {
+      from {
+        opacity: 0;
+        transform: translateX(50px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    .slide-in-right {
+      animation: slideInRight 0.5s ease-out;
+    }
+    .sparkle {
+      position: relative;
+    }
+    .sparkle::before {
+      content: '✨';
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      animation: bounce 1.5s ease-in-out infinite;
+    }
+    @keyframes gradient-shift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .gradient-animated {
+      background-size: 200% 200%;
+      animation: gradient-shift 5s ease infinite;
+    }
+    @media print {
+      .no-print {
+        display: none !important;
+      }
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+ </head>
+ <body class="min-h-full">
+  <div id="app" class="min-h-full flex flex-col"><!-- Header -->
+   <header class="gradient-bg shadow-lg no-print">
+    <div class="container mx-auto px-4 py-6 relative z-10">
+     <div class="flex justify-between items-center flex-wrap gap-4">
+      <div class="flex items-center gap-4">
+       <div class="w-16 h-16 bg-gradient-to-br from-yellow-300 to-yellow-500 rounded-full flex items-center justify-center text-3xl shadow-2xl bounce-animation relative">
+        🎓 
+        <div class="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full animate-ping"></div>
+       </div>
+       <div>
+        <h1 class="text-3xl font-bold text-white drop-shadow-lg">SIMKEU</h1>
+        <p class="text-sm text-white opacity-90">Sistem Informasi Manajemen Keuangan</p>
+       </div>
+      </div>
+      <div class="flex items-center gap-3">
+       <div class="glass-effect px-6 py-3 rounded-full shadow-lg sparkle"><span class="text-sm font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent" id="current-ekstrakurikuler">🎯 Pilih Ekstrakurikuler</span>
+       </div>
+      </div>
+     </div>
+    </div><!-- Decorative shapes -->
+    <div class="absolute top-0 left-0 w-32 h-32 bg-white opacity-10 rounded-full -translate-x-16 -translate-y-16 rotate-animation"></div>
+    <div class="absolute bottom-0 right-0 w-40 h-40 bg-white opacity-10 rounded-full translate-x-20 translate-y-20"></div>
+   </header><!-- Main Content -->
+   <main class="flex-1 container mx-auto px-4 py-8"><!-- Home View -->
+    <div id="home-view" class="view">
+     <div class="text-center mb-12 animate-fade-in-up relative">
+      <div class="inline-block mb-6">
+       <div class="text-7xl mb-4 bounce-animation">
+        🎉
+       </div>
+      </div>
+      <h2 id="welcome-title" class="text-5xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-purple-600 via-pink-500 to-red-500 bg-clip-text text-transparent drop-shadow-2xl gradient-animated">Selamat Datang</h2>
+      <div class="flex items-center justify-center gap-3 mb-4">
+       <div class="w-20 h-1 bg-gradient-to-r from-transparent via-purple-500 to-transparent rounded-full"></div><span class="text-3xl">✨</span>
+       <div class="w-20 h-1 bg-gradient-to-r from-transparent via-pink-500 to-transparent rounded-full"></div>
+      </div>
+      <p id="welcome-subtitle" class="text-2xl font-semibold text-gray-700 mb-8">Sistem Manajemen Keuangan Ekstrakurikuler</p>
+      <div class="flex justify-center gap-2 mb-8"><span class="inline-block px-4 py-2 bg-gradient-to-r from-blue-100 to-blue-200 text-blue-700 rounded-full text-sm font-medium shadow-md">📊 Mudah</span> <span class="inline-block px-4 py-2 bg-gradient-to-r from-green-100 to-green-200 text-green-700 rounded-full text-sm font-medium shadow-md">⚡ Cepat</span> <span class="inline-block px-4 py-2 bg-gradient-to-r from-purple-100 to-purple-200 text-purple-700 rounded-full text-sm font-medium shadow-md">🔒 Aman</span>
+      </div>
+     </div><!-- Ekstrakurikuler Selection -->
+     <div class="max-w-5xl mx-auto">
+      <h3 class="text-2xl font-bold text-center mb-8 text-gray-800">Pilih Ekstrakurikuler untuk Memulai</h3>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"><!-- Pramuka -->
+       <div onclick="selectEkstrakurikuler('Pramuka')" class="cursor-pointer card-hover bg-gradient-to-br from-green-400 via-green-500 to-green-600 rounded-2xl shadow-xl p-6 text-white transform transition-all relative">
+        <div class="absolute top-2 right-2 text-2xl opacity-50">
+         🌟
+        </div>
+        <div class="text-6xl mb-4 text-center float-animation">
+         🏕️
+        </div>
+        <h4 class="text-2xl font-bold text-center mb-2">Pramuka</h4>
+        <p class="text-center text-sm opacity-90">Gerakan Kepanduan</p>
+        <div class="mt-4 flex justify-center"><span class="badge bg-white text-green-600 shadow-lg">🏕️ Outdoor</span>
+        </div>
+       </div><!-- Paskibra -->
+       <div onclick="selectEkstrakurikuler('Paskibra')" class="cursor-pointer card-hover bg-gradient-to-br from-red-400 via-red-500 to-red-600 rounded-2xl shadow-xl p-6 text-white transform transition-all relative">
+        <div class="absolute top-2 right-2 text-2xl opacity-50">
+         ⭐
+        </div>
+        <div class="text-6xl mb-4 text-center float-animation" style="animation-delay: 0.1s">
+         🎖️
+        </div>
+        <h4 class="text-2xl font-bold text-center mb-2">Paskibra</h4>
+        <p class="text-center text-sm opacity-90">Pasukan Pengibar Bendera</p>
+        <div class="mt-4 flex justify-center"><span class="badge bg-white text-red-600 shadow-lg">🎖️ Disiplin</span>
+        </div>
+       </div><!-- PMR -->
+       <div onclick="selectEkstrakurikuler('PMR')" class="cursor-pointer card-hover bg-gradient-to-br from-pink-400 via-pink-500 to-pink-600 rounded-2xl shadow-xl p-6 text-white transform transition-all relative">
+        <div class="absolute top-2 right-2 text-2xl opacity-50">
+         💫
+        </div>
+        <div class="text-6xl mb-4 text-center float-animation" style="animation-delay: 0.2s">
+         🏥
+        </div>
+        <h4 class="text-2xl font-bold text-center mb-2">PMR</h4>
+        <p class="text-center text-sm opacity-90">Palang Merah Remaja</p>
+        <div class="mt-4 flex justify-center"><span class="badge bg-white text-pink-600 shadow-lg">❤️ Kesehatan</span>
+        </div>
+       </div><!-- Basket -->
+       <div onclick="selectEkstrakurikuler('Basket')" class="cursor-pointer card-hover bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600 rounded-2xl shadow-xl p-6 text-white transform transition-all relative">
+        <div class="absolute top-2 right-2 text-2xl opacity-50">
+         🔥
+        </div>
+        <div class="text-6xl mb-4 text-center float-animation" style="animation-delay: 0.3s">
+         🏀
+        </div>
+        <h4 class="text-2xl font-bold text-center mb-2">Basket</h4>
+        <p class="text-center text-sm opacity-90">Olahraga Tim</p>
+        <div class="mt-4 flex justify-center"><span class="badge bg-white text-orange-600 shadow-lg">🏀 Sport</span>
+        </div>
+       </div><!-- Futsal -->
+       <div onclick="selectEkstrakurikuler('Futsal')" class="cursor-pointer card-hover bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600 rounded-2xl shadow-xl p-6 text-white transform transition-all relative">
+        <div class="absolute top-2 right-2 text-2xl opacity-50">
+         💥
+        </div>
+        <div class="text-6xl mb-4 text-center float-animation" style="animation-delay: 0.4s">
+         ⚽
+        </div>
+        <h4 class="text-2xl font-bold text-center mb-2">Futsal</h4>
+        <p class="text-center text-sm opacity-90">Sepak Bola Indoor</p>
+        <div class="mt-4 flex justify-center"><span class="badge bg-white text-blue-600 shadow-lg">⚽ Sport</span>
+        </div>
+       </div><!-- Voli -->
+       <div onclick="selectEkstrakurikuler('Voli')" class="cursor-pointer card-hover bg-gradient-to-br from-yellow-400 via-yellow-500 to-yellow-600 rounded-2xl shadow-xl p-6 text-white transform transition-all relative">
+        <div class="absolute top-2 right-2 text-2xl opacity-50">
+         ✨
+        </div>
+        <div class="text-6xl mb-4 text-center float-animation" style="animation-delay: 0.5s">
+         🏐
+        </div>
+        <h4 class="text-2xl font-bold text-center mb-2">Voli</h4>
+        <p class="text-center text-sm opacity-90">Bola Voli</p>
+        <div class="mt-4 flex justify-center"><span class="badge bg-white text-yellow-700 shadow-lg">🏐 Sport</span>
+        </div>
+       </div><!-- Musik -->
+       <div onclick="selectEkstrakurikuler('Musik')" class="cursor-pointer card-hover bg-gradient-to-br from-purple-400 via-purple-500 to-purple-600 rounded-2xl shadow-xl p-6 text-white transform transition-all relative">
+        <div class="absolute top-2 right-2 text-2xl opacity-50">
+         🎶
+        </div>
+        <div class="text-6xl mb-4 text-center float-animation" style="animation-delay: 0.6s">
+         🎵
+        </div>
+        <h4 class="text-2xl font-bold text-center mb-2">Musik</h4>
+        <p class="text-center text-sm opacity-90">Seni &amp; Band</p>
+        <div class="mt-4 flex justify-center"><span class="badge bg-white text-purple-600 shadow-lg">🎸 Art</span>
+        </div>
+       </div><!-- Teater -->
+       <div onclick="selectEkstrakurikuler('Teater')" class="cursor-pointer card-hover bg-gradient-to-br from-indigo-400 via-indigo-500 to-indigo-600 rounded-2xl shadow-xl p-6 text-white transform transition-all relative">
+        <div class="absolute top-2 right-2 text-2xl opacity-50">
+         🎬
+        </div>
+        <div class="text-6xl mb-4 text-center float-animation" style="animation-delay: 0.7s">
+         🎭
+        </div>
+        <h4 class="text-2xl font-bold text-center mb-2">Teater</h4>
+        <p class="text-center text-sm opacity-90">Seni Peran</p>
+        <div class="mt-4 flex justify-center"><span class="badge bg-white text-indigo-600 shadow-lg">🎭 Art</span>
+        </div>
+       </div><!-- Tari -->
+       <div onclick="selectEkstrakurikuler('Tari')" class="cursor-pointer card-hover bg-gradient-to-br from-teal-400 via-teal-500 to-teal-600 rounded-2xl shadow-xl p-6 text-white transform transition-all relative">
+        <div class="absolute top-2 right-2 text-2xl opacity-50">
+         🌺
+        </div>
+        <div class="text-6xl mb-4 text-center float-animation" style="animation-delay: 0.8s">
+         💃
+        </div>
+        <h4 class="text-2xl font-bold text-center mb-2">Tari</h4>
+        <p class="text-center text-sm opacity-90">Seni Tari Tradisional</p>
+        <div class="mt-4 flex justify-center"><span class="badge bg-white text-teal-600 shadow-lg">💃 Art</span>
+        </div>
+       </div><!-- General Engineering Club -->
+       <div onclick="selectEkstrakurikuler('General Engineering Club')" class="cursor-pointer card-hover bg-gradient-to-br from-gray-700 via-gray-800 to-gray-900 rounded-2xl shadow-xl p-6 text-white transform transition-all relative">
+        <div class="absolute top-2 right-2 text-2xl opacity-50">
+         🤖
+        </div>
+        <div class="text-6xl mb-4 text-center float-animation" style="animation-delay: 0.9s">
+         ⚙️
+        </div>
+        <h4 class="text-2xl font-bold text-center mb-2">Engineering Club</h4>
+        <p class="text-center text-sm opacity-90">Teknik &amp; Robotika</p>
+        <div class="mt-4 flex justify-center"><span class="badge bg-white text-gray-800 shadow-lg">⚙️ Tech</span>
+        </div>
+       </div><!-- English Club -->
+       <div onclick="selectEkstrakurikuler('English Club')" class="cursor-pointer card-hover bg-gradient-to-br from-cyan-400 via-cyan-500 to-cyan-600 rounded-2xl shadow-xl p-6 text-white transform transition-all relative">
+        <div class="absolute top-2 right-2 text-2xl opacity-50">
+         📖
+        </div>
+        <div class="text-6xl mb-4 text-center float-animation" style="animation-delay: 1s">
+         📚
+        </div>
+        <h4 class="text-2xl font-bold text-center mb-2">English Club</h4>
+        <p class="text-center text-sm opacity-90">Bahasa Inggris</p>
+        <div class="mt-4 flex justify-center"><span class="badge bg-white text-cyan-600 shadow-lg">🌍 Language</span>
+        </div>
+       </div><!-- Remaja Masjid -->
+       <div onclick="selectEkstrakurikuler('Remaja Masjid')" class="cursor-pointer card-hover bg-gradient-to-br from-emerald-400 via-emerald-500 to-emerald-600 rounded-2xl shadow-xl p-6 text-white transform transition-all relative">
+        <div class="absolute top-2 right-2 text-2xl opacity-50">
+         ☪️
+        </div>
+        <div class="text-6xl mb-4 text-center float-animation" style="animation-delay: 1.1s">
+         🕌
+        </div>
+        <h4 class="text-2xl font-bold text-center mb-2">Remaja Masjid</h4>
+        <p class="text-center text-sm opacity-90">Keagamaan Islam</p>
+        <div class="mt-4 flex justify-center"><span class="badge bg-white text-emerald-600 shadow-lg">🕌 Religious</span>
+        </div>
+       </div>
+      </div>
+     </div><!-- Info Section -->
+     <div class="max-w-4xl mx-auto mt-16 grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl shadow-xl p-8 text-center card-hover border-2 border-blue-200 relative overflow-hidden">
+       <div class="absolute top-0 right-0 text-6xl opacity-10 transform translate-x-4 -translate-y-2">
+        📊
+       </div>
+       <div class="text-5xl mb-4 bounce-animation relative z-10">
+        📊
+       </div>
+       <h4 class="font-bold text-xl mb-3 text-blue-800">Kelola Keuangan</h4>
+       <p class="text-sm text-blue-700">Catat pemasukan dan pengeluaran dengan mudah dan cepat</p>
+      </div>
+      <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl shadow-xl p-8 text-center card-hover border-2 border-green-200 relative overflow-hidden">
+       <div class="absolute top-0 right-0 text-6xl opacity-10 transform translate-x-4 -translate-y-2">
+        📈
+       </div>
+       <div class="text-5xl mb-4 bounce-animation relative z-10" style="animation-delay: 0.2s">
+        📈
+       </div>
+       <h4 class="font-bold text-xl mb-3 text-green-800">Laporan Real-time</h4>
+       <p class="text-sm text-green-700">Monitor finansial kapan saja dimana saja</p>
+      </div>
+      <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl shadow-xl p-8 text-center card-hover border-2 border-purple-200 relative overflow-hidden">
+       <div class="absolute top-0 right-0 text-6xl opacity-10 transform translate-x-4 -translate-y-2">
+        📄
+       </div>
+       <div class="text-5xl mb-4 bounce-animation relative z-10" style="animation-delay: 0.4s">
+        📄
+       </div>
+       <h4 class="font-bold text-xl mb-3 text-purple-800">Export PDF</h4>
+       <p class="text-sm text-purple-700">Cetak laporan keuangan bulanan dengan mudah</p>
+      </div>
+     </div>
+    </div><!-- Dashboard View -->
+    <div id="dashboard-view" class="view hidden">
+     <div class="mb-8">
+      <div class="flex justify-between items-center flex-wrap gap-4 mb-4">
+       <div>
+        <h2 class="text-3xl font-bold text-gray-800 mb-2">Dashboard Keuangan</h2>
+        <p class="text-gray-600" id="dashboard-ekstrakurikuler">Pilih ekstrakurikuler terlebih dahulu</p>
+       </div><button onclick="showView('home')" class="bg-gradient-to-r from-gray-500 to-gray-600 text-white px-6 py-3 rounded-xl font-medium shadow-lg hover:shadow-xl transition-all"> 🏠 Kembali ke Beranda </button>
+      </div><!-- Quick Actions -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6"><button onclick="showView('income')" class="bg-gradient-to-r from-green-400 to-green-500 text-white p-4 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105">
+        <div class="text-3xl mb-2">
+         💰
+        </div>
+        <div class="font-bold">
+         Pemasukan
+        </div></button> <button onclick="showView('expense')" class="bg-gradient-to-r from-red-400 to-red-500 text-white p-4 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105">
+        <div class="text-3xl mb-2">
+         💸
+        </div>
+        <div class="font-bold">
+         Pengeluaran
+        </div></button> <button onclick="showView('report')" class="bg-gradient-to-r from-purple-400 to-purple-500 text-white p-4 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105">
+        <div class="text-3xl mb-2">
+         📈
+        </div>
+        <div class="font-bold">
+         Laporan
+        </div></button> <button onclick="showView('home')" class="bg-gradient-to-r from-blue-400 to-blue-500 text-white p-4 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105">
+        <div class="text-3xl mb-2">
+         🔄
+        </div>
+        <div class="font-bold">
+         Ganti Ekskul
+        </div></button>
+      </div>
+     </div><!-- Summary Cards -->
+     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div class="bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600 rounded-2xl shadow-2xl p-6 text-white card-hover relative overflow-hidden">
+       <div class="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full transform translate-x-10 -translate-y-10"></div>
+       <div class="flex items-center justify-between mb-4 relative z-10">
+        <h3 class="text-lg font-semibold opacity-90">💎 Saldo</h3>
+        <div class="bg-white bg-opacity-30 rounded-full p-3 shadow-lg bounce-animation"><span class="text-3xl">💰</span>
+        </div>
+       </div>
+       <p id="balance" class="text-4xl font-bold drop-shadow-lg relative z-10">Rp 0</p>
+       <p class="text-sm opacity-90 mt-2 relative z-10">Total saldo saat ini</p>
+      </div>
+      <div class="bg-gradient-to-br from-green-400 via-green-500 to-green-600 rounded-2xl shadow-2xl p-6 text-white card-hover relative overflow-hidden">
+       <div class="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full transform translate-x-10 -translate-y-10"></div>
+       <div class="flex items-center justify-between mb-4 relative z-10">
+        <h3 class="text-lg font-semibold opacity-90">📥 Pemasukan</h3>
+        <div class="bg-white bg-opacity-30 rounded-full p-3 shadow-lg bounce-animation" style="animation-delay: 0.1s"><span class="text-3xl">📈</span>
+        </div>
+       </div>
+       <p id="monthly-income" class="text-4xl font-bold drop-shadow-lg relative z-10">Rp 0</p>
+       <p class="text-sm opacity-90 mt-2 relative z-10">Bulan ini</p>
+      </div>
+      <div class="bg-gradient-to-br from-red-400 via-red-500 to-red-600 rounded-2xl shadow-2xl p-6 text-white card-hover relative overflow-hidden">
+       <div class="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full transform translate-x-10 -translate-y-10"></div>
+       <div class="flex items-center justify-between mb-4 relative z-10">
+        <h3 class="text-lg font-semibold opacity-90">📤 Pengeluaran</h3>
+        <div class="bg-white bg-opacity-30 rounded-full p-3 shadow-lg bounce-animation" style="animation-delay: 0.2s"><span class="text-3xl">📉</span>
+        </div>
+       </div>
+       <p id="monthly-expense" class="text-4xl font-bold drop-shadow-lg relative z-10">Rp 0</p>
+       <p class="text-sm opacity-90 mt-2 relative z-10">Bulan ini</p>
+      </div>
+     </div><!-- Chart -->
+     <div class="bg-white rounded-2xl shadow-xl p-8">
+      <h3 class="text-2xl font-bold text-gray-800 mb-6">Grafik Keuangan Bulan Ini</h3>
+      <canvas id="dashboard-chart"></canvas>
+     </div>
+    </div><!-- Income View -->
+    <div id="income-view" class="view hidden">
+     <div class="flex justify-between items-center mb-8 flex-wrap gap-4">
+      <div>
+       <h2 class="text-3xl font-bold text-gray-800 mb-2">Manajemen Pemasukan</h2>
+       <p class="text-gray-600" id="income-ekstrakurikuler">Pilih ekstrakurikuler terlebih dahulu</p>
+      </div>
+      <div class="flex gap-3"><button onclick="showView('dashboard')" class="bg-gradient-to-r from-gray-500 to-gray-600 text-white px-6 py-4 rounded-xl font-medium shadow-lg hover:shadow-xl transition-all"> 🏠 Dashboard </button> <button onclick="openIncomeModal()" class="bg-gradient-to-r from-green-400 via-green-500 to-green-600 text-white px-8 py-4 rounded-xl font-bold shadow-2xl hover:shadow-2xl transition-all transform hover:scale-105 hover:rotate-1 relative overflow-hidden group"> <span class="relative z-10 flex items-center gap-2"> <span class="text-2xl">➕</span> <span>Tambah Pemasukan</span> </span>
+        <div class="absolute inset-0 bg-gradient-to-r from-green-300 to-green-500 opacity-0 group-hover:opacity-100 transition-opacity"></div></button>
+      </div>
+     </div><!-- Filters -->
+     <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4"><input type="date" id="income-date-filter" class="px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none transition-colors"> <select id="income-category-filter" class="px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none transition-colors"> <option value="">Semua Kategori</option> <option value="Iuran Anggota">Iuran Anggota</option> <option value="Donasi">Donasi</option> <option value="Sponsor">Sponsor</option> <option value="Penjualan">Penjualan</option> <option value="Lainnya">Lainnya</option> </select> <button onclick="filterTransactions('income')" class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-xl font-medium shadow-lg hover:shadow-xl transition-all"> 🔍 Filter </button> <button onclick="clearFilter('income')" class="bg-gray-100 text-gray-700 px-6 py-3 rounded-xl font-medium hover:bg-gray-200 transition-all"> 🔄 Reset </button>
+      </div>
+     </div><!-- Income Table -->
+     <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+      <div class="table-responsive">
+       <table class="w-full">
+        <thead class="bg-gradient-to-r from-green-500 to-green-600 text-white">
+         <tr>
+          <th class="px-6 py-4 text-left text-sm font-semibold">Tanggal</th>
+          <th class="px-6 py-4 text-left text-sm font-semibold">Kategori</th>
+          <th class="px-6 py-4 text-left text-sm font-semibold">Nominal</th>
+          <th class="px-6 py-4 text-left text-sm font-semibold">Deskripsi</th>
+          <th class="px-6 py-4 text-left text-sm font-semibold">Aksi</th>
+         </tr>
+        </thead>
+        <tbody id="income-table-body"></tbody>
+       </table>
+      </div>
+     </div>
+    </div><!-- Expense View -->
+    <div id="expense-view" class="view hidden">
+     <div class="flex justify-between items-center mb-8 flex-wrap gap-4">
+      <div>
+       <h2 class="text-3xl font-bold text-gray-800 mb-2">Manajemen Pengeluaran</h2>
+       <p class="text-gray-600" id="expense-ekstrakurikuler">Pilih ekstrakurikuler terlebih dahulu</p>
+      </div>
+      <div class="flex gap-3"><button onclick="showView('dashboard')" class="bg-gradient-to-r from-gray-500 to-gray-600 text-white px-6 py-4 rounded-xl font-medium shadow-lg hover:shadow-xl transition-all"> 🏠 Dashboard </button> <button onclick="openExpenseModal()" class="bg-gradient-to-r from-red-400 via-red-500 to-red-600 text-white px-8 py-4 rounded-xl font-bold shadow-2xl hover:shadow-2xl transition-all transform hover:scale-105 hover:rotate-1 relative overflow-hidden group"> <span class="relative z-10 flex items-center gap-2"> <span class="text-2xl">➕</span> <span>Tambah Pengeluaran</span> </span>
+        <div class="absolute inset-0 bg-gradient-to-r from-red-300 to-red-500 opacity-0 group-hover:opacity-100 transition-opacity"></div></button>
+      </div>
+     </div><!-- Filters -->
+     <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4"><input type="date" id="expense-date-filter" class="px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-red-500 focus:outline-none transition-colors"> <select id="expense-category-filter" class="px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-red-500 focus:outline-none transition-colors"> <option value="">Semua Kategori</option> <option value="Peralatan">Peralatan</option> <option value="Konsumsi">Konsumsi</option> <option value="Transport">Transport</option> <option value="Seragam">Seragam</option> <option value="Lomba">Lomba</option> <option value="Lainnya">Lainnya</option> </select> <button onclick="filterTransactions('expense')" class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-xl font-medium shadow-lg hover:shadow-xl transition-all"> 🔍 Filter </button> <button onclick="clearFilter('expense')" class="bg-gray-100 text-gray-700 px-6 py-3 rounded-xl font-medium hover:bg-gray-200 transition-all"> 🔄 Reset </button>
+      </div>
+     </div><!-- Expense Table -->
+     <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+      <div class="table-responsive">
+       <table class="w-full">
+        <thead class="bg-gradient-to-r from-red-500 to-red-600 text-white">
+         <tr>
+          <th class="px-6 py-4 text-left text-sm font-semibold">Tanggal</th>
+          <th class="px-6 py-4 text-left text-sm font-semibold">Kategori</th>
+          <th class="px-6 py-4 text-left text-sm font-semibold">Nominal</th>
+          <th class="px-6 py-4 text-left text-sm font-semibold">Deskripsi</th>
+          <th class="px-6 py-4 text-left text-sm font-semibold">Aksi</th>
+         </tr>
+        </thead>
+        <tbody id="expense-table-body"></tbody>
+       </table>
+      </div>
+     </div>
+    </div><!-- Report View -->
+    <div id="report-view" class="view hidden">
+     <div class="flex justify-between items-center mb-8 flex-wrap gap-4">
+      <div>
+       <h2 class="text-3xl font-bold text-gray-800 mb-2">Laporan Keuangan Bulanan</h2>
+       <p class="text-gray-600" id="report-ekstrakurikuler">Pilih ekstrakurikuler terlebih dahulu</p>
+      </div>
+      <div class="flex gap-3"><button onclick="showView('dashboard')" class="bg-gradient-to-r from-gray-500 to-gray-600 text-white px-6 py-4 rounded-xl font-medium shadow-lg hover:shadow-xl transition-all"> 🏠 Dashboard </button> <button onclick="exportToPDF()" class="bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 text-white px-8 py-4 rounded-xl font-bold shadow-2xl hover:shadow-2xl transition-all transform hover:scale-105 hover:rotate-1 relative overflow-hidden group"> <span class="relative z-10 flex items-center gap-2"> <span class="text-2xl">📄</span> <span>Ekspor PDF</span> </span>
+        <div class="absolute inset-0 bg-gradient-to-r from-purple-300 to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity"></div></button>
+      </div>
+     </div><!-- Month Selector -->
+     <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+      <div class="flex gap-4 items-center flex-wrap"><label class="font-semibold text-gray-700 text-lg">Pilih Bulan:</label> <input type="month" id="report-month" class="px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:outline-none transition-colors"> <button onclick="generateReport()" class="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-6 py-3 rounded-xl font-medium shadow-lg hover:shadow-xl transition-all"> 📊 Generate Laporan </button>
+      </div>
+     </div><!-- Report Content -->
+     <div id="report-content" class="space-y-8">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+       <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl shadow-xl p-6 text-white">
+        <h3 class="text-lg font-semibold mb-3 opacity-90">Total Pemasukan</h3>
+        <p id="report-income" class="text-3xl font-bold">Rp 0</p>
+       </div>
+       <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-2xl shadow-xl p-6 text-white">
+        <h3 class="text-lg font-semibold mb-3 opacity-90">Total Pengeluaran</h3>
+        <p id="report-expense" class="text-3xl font-bold">Rp 0</p>
+       </div>
+       <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-xl p-6 text-white">
+        <h3 class="text-lg font-semibold mb-3 opacity-90">Saldo Akhir</h3>
+        <p id="report-balance" class="text-3xl font-bold">Rp 0</p>
+       </div>
+      </div>
+      <div class="bg-white rounded-2xl shadow-xl p-8">
+       <h3 class="text-2xl font-bold text-gray-800 mb-6">Grafik Bulanan</h3>
+       <canvas id="report-chart"></canvas>
+      </div>
+      <div class="bg-white rounded-2xl shadow-xl p-8">
+       <h3 class="text-2xl font-bold text-gray-800 mb-6">Detail Transaksi</h3>
+       <div id="report-details"></div>
+      </div>
+     </div>
+    </div>
+   </main><!-- Footer -->
+   <footer class="bg-gray-800 text-white py-6 no-print">
+    <div class="container mx-auto px-4 text-center">
+     <p class="text-sm">© 2024 SIMKEU - Sistem Informasi Manajemen Keuangan Ekstrakurikuler</p>
+    </div>
+   </footer><!-- Transaction Modal -->
+   <div id="transaction-modal" class="fixed inset-0 modal-backdrop hidden items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90%] overflow-y-auto">
+     <div class="p-8">
+      <div class="flex justify-between items-center mb-6">
+       <h3 id="modal-title" class="text-2xl font-bold text-gray-800">Tambah Transaksi</h3><button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 text-3xl leading-none transition-colors">×</button>
+      </div>
+      <form id="transaction-form" class="space-y-5">
+       <div><label class="block font-semibold text-gray-700 mb-2">Tanggal</label> <input type="date" id="transaction-date" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:outline-none transition-colors">
+       </div>
+       <div><label class="block font-semibold text-gray-700 mb-2">Kategori</label> <select id="transaction-category" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:outline-none transition-colors"> <option value="">Pilih Kategori</option> </select>
+       </div>
+       <div><label class="block font-semibold text-gray-700 mb-2">Nominal (Rp)</label> <input type="number" id="transaction-amount" required min="0" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:outline-none transition-colors">
+       </div>
+       <div><label class="block font-semibold text-gray-700 mb-2">Deskripsi</label> <textarea id="transaction-description" required rows="3" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:outline-none transition-colors"></textarea>
+       </div>
+       <div><label class="block font-semibold text-gray-700 mb-2">Bukti (URL)</label> <input type="url" id="transaction-proof" placeholder="https://example.com/bukti.jpg" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:outline-none transition-colors">
+        <p class="text-xs text-gray-500 mt-1">Upload bukti ke cloud storage dan paste URL-nya di sini</p>
+       </div>
+       <div class="flex gap-3 pt-2"><button type="submit" id="submit-btn" class="flex-1 bg-gradient-to-r from-purple-500 to-purple-600 text-white px-6 py-3 rounded-xl font-medium shadow-lg hover:shadow-xl transition-all transform hover:scale-105"> 💾 Simpan </button> <button type="button" onclick="closeModal()" class="flex-1 bg-gray-100 text-gray-700 px-6 py-3 rounded-xl font-medium hover:bg-gray-200 transition-all"> ❌ Batal </button>
+       </div>
+      </form>
+     </div>
+    </div>
+   </div><!-- Delete Confirmation -->
+   <div id="delete-confirmation" class="fixed inset-0 modal-backdrop hidden items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-8">
+     <div class="text-center mb-6">
+      <div class="text-6xl mb-4">
+       ⚠️
+      </div>
+      <h3 class="text-2xl font-bold text-gray-800 mb-2">Konfirmasi Hapus</h3>
+      <p class="text-gray-600">Apakah Anda yakin ingin menghapus transaksi ini? Tindakan ini tidak dapat dibatalkan.</p>
+     </div>
+     <div class="flex gap-3"><button onclick="confirmDelete()" id="confirm-delete-btn" class="flex-1 bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-xl font-medium shadow-lg hover:shadow-xl transition-all"> 🗑️ Hapus </button> <button onclick="cancelDelete()" class="flex-1 bg-gray-100 text-gray-700 px-6 py-3 rounded-xl font-medium hover:bg-gray-200 transition-all"> Batal </button>
+     </div>
+    </div>
+   </div><!-- Toast Notification -->
+   <div id="toast" class="fixed bottom-6 right-6 px-6 py-4 rounded-xl shadow-2xl hidden z-50 transition-all transform">
+    <div class="flex items-center gap-3"><span id="toast-icon" class="text-2xl"></span> <span id="toast-message" class="font-medium"></span>
+    </div>
+   </div>
+  </div>
+  <script>
+    const defaultConfig = {
+      welcome_title: 'Selamat Datang',
+      welcome_subtitle: 'Sistem Manajemen Keuangan Ekstrakurikuler',
+      primary_color: '#667eea',
+      surface_color: '#ffffff',
+      text_color: '#1f2937',
+      accent_color: '#10b981',
+      danger_color: '#ef4444'
+    };
+
+    let allTransactions = [];
+    let currentView = 'home';
+    let currentEkstrakurikuler = null;
+    let currentTransaction = null;
+    let transactionToDelete = null;
+    let dashboardChart = null;
+    let reportChart = null;
+
+    const dataHandler = {
+      onDataChanged(data) {
+        allTransactions = data;
+        renderCurrentView();
+      }
+    };
+
+    async function onConfigChange(config) {
+      const welcomeTitle = config.welcome_title || defaultConfig.welcome_title;
+      const welcomeSubtitle = config.welcome_subtitle || defaultConfig.welcome_subtitle;
+
+      document.getElementById('welcome-title').textContent = welcomeTitle;
+      document.getElementById('welcome-subtitle').textContent = welcomeSubtitle;
+    }
+
+    async function initializeApp() {
+      if (window.dataSdk) {
+        const result = await window.dataSdk.init(dataHandler);
+        if (!result.isOk) {
+          showToast('Gagal menginisialisasi aplikasi', 'error');
+        }
+      }
+
+      if (window.elementSdk) {
+        window.elementSdk.init({
+          defaultConfig,
+          onConfigChange,
+          mapToCapabilities: (config) => ({
+            recolorables: [],
+            borderables: [],
+            fontEditable: undefined,
+            fontSizeable: undefined
+          }),
+          mapToEditPanelValues: (config) => new Map([
+            ['welcome_title', config.welcome_title || defaultConfig.welcome_title],
+            ['welcome_subtitle', config.welcome_subtitle || defaultConfig.welcome_subtitle]
+          ])
+        });
+
+        await onConfigChange(window.elementSdk.config);
+      }
+
+      const today = new Date();
+      document.getElementById('report-month').value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+      
+      showView('home');
+    }
+
+    function selectEkstrakurikuler(name) {
+      currentEkstrakurikuler = name;
+      document.getElementById('current-ekstrakurikuler').textContent = `🎯 ${name}`;
+      document.getElementById('dashboard-ekstrakurikuler').textContent = `Ekstrakurikuler: ${name}`;
+      document.getElementById('income-ekstrakurikuler').textContent = `Ekstrakurikuler: ${name}`;
+      document.getElementById('expense-ekstrakurikuler').textContent = `Ekstrakurikuler: ${name}`;
+      document.getElementById('report-ekstrakurikuler').textContent = `Ekstrakurikuler: ${name}`;
+      
+      showToast(`Ekstrakurikuler ${name} dipilih`, 'success');
+      showView('dashboard');
+    }
+
+    function showView(view) {
+      if (view !== 'home' && !currentEkstrakurikuler) {
+        showToast('Pilih ekstrakurikuler terlebih dahulu', 'warning');
+        showView('home');
+        return;
+      }
+
+      currentView = view;
+      document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+      document.getElementById(`${view}-view`).classList.remove('hidden');
+      
+      renderCurrentView();
+    }
+
+    function renderCurrentView() {
+      if (!currentEkstrakurikuler && currentView !== 'home') return;
+
+      switch(currentView) {
+        case 'dashboard':
+          renderDashboard();
+          break;
+        case 'income':
+          renderIncomeTable();
+          break;
+        case 'expense':
+          renderExpenseTable();
+          break;
+        case 'report':
+          generateReport();
+          break;
+      }
+    }
+
+    function getFilteredTransactions() {
+      return allTransactions.filter(t => t.ekstrakurikuler === currentEkstrakurikuler);
+    }
+
+    function renderDashboard() {
+      const transactions = getFilteredTransactions();
+      const now = new Date();
+      const currentMonth = now.getMonth();
+      const currentYear = now.getFullYear();
+
+      const monthlyIncome = transactions
+        .filter(t => {
+          const date = new Date(t.date);
+          return t.type === 'income' && date.getMonth() === currentMonth && date.getFullYear() === currentYear;
+        })
+        .reduce((sum, t) => sum + t.amount, 0);
+
+      const monthlyExpense = transactions
+        .filter(t => {
+          const date = new Date(t.date);
+          return t.type === 'expense' && date.getMonth() === currentMonth && date.getFullYear() === currentYear;
+        })
+        .reduce((sum, t) => sum + t.amount, 0);
+
+      const balance = transactions.reduce((sum, t) => {
+        return t.type === 'income' ? sum + t.amount : sum - t.amount;
+      }, 0);
+
+      document.getElementById('balance').textContent = formatCurrency(balance);
+      document.getElementById('monthly-income').textContent = formatCurrency(monthlyIncome);
+      document.getElementById('monthly-expense').textContent = formatCurrency(monthlyExpense);
+
+      renderDashboardChart(monthlyIncome, monthlyExpense);
+    }
+
+    function renderDashboardChart(income, expense) {
+      const ctx = document.getElementById('dashboard-chart');
+      
+      if (dashboardChart) {
+        dashboardChart.destroy();
+      }
+
+      dashboardChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Pemasukan', 'Pengeluaran'],
+          datasets: [{
+            label: 'Nominal (Rp)',
+            data: [income, expense],
+            backgroundColor: ['#10b981', '#ef4444'],
+            borderRadius: 10,
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: {
+              display: false
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: function(value) {
+                  return 'Rp ' + value.toLocaleString('id-ID');
+                }
+              },
+              grid: {
+                color: '#f3f4f6'
+              }
+            },
+            x: {
+              grid: {
+                display: false
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function renderIncomeTable() {
+      const tbody = document.getElementById('income-table-body');
+      const incomes = getFilteredTransactions().filter(t => t.type === 'income');
+      
+      if (incomes.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-12 text-center text-gray-500"><div class="text-5xl mb-3">📭</div><p class="text-lg">Belum ada data pemasukan</p></td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = incomes.map((income, index) => `
+        <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+          <td class="px-6 py-4">${formatDate(income.date)}</td>
+          <td class="px-6 py-4"><span class="badge" style="background-color: #d1fae5; color: #065f46">${income.category}</span></td>
+          <td class="px-6 py-4"><span class="font-bold text-green-600">${formatCurrency(income.amount)}</span></td>
+          <td class="px-6 py-4">${income.description}</td>
+          <td class="px-6 py-4">
+            <div class="flex gap-2">
+              <button onclick='editTransaction(${JSON.stringify(income).replace(/'/g, "&#39;")})' class="px-4 py-2 bg-blue-100 text-blue-600 rounded-lg text-sm font-medium hover:bg-blue-200 transition-colors">
+                ✏️ Edit
+              </button>
+              <button onclick='deleteTransaction(${JSON.stringify(income).replace(/'/g, "&#39;")})' class="px-4 py-2 bg-red-100 text-red-600 rounded-lg text-sm font-medium hover:bg-red-200 transition-colors">
+                🗑️ Hapus
+              </button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function renderExpenseTable() {
+      const tbody = document.getElementById('expense-table-body');
+      const expenses = getFilteredTransactions().filter(t => t.type === 'expense');
+      
+      if (expenses.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-12 text-center text-gray-500"><div class="text-5xl mb-3">📭</div><p class="text-lg">Belum ada data pengeluaran</p></td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = expenses.map(expense => `
+        <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+          <td class="px-6 py-4">${formatDate(expense.date)}</td>
+          <td class="px-6 py-4"><span class="badge" style="background-color: #fee2e2; color: #991b1b">${expense.category}</span></td>
+          <td class="px-6 py-4"><span class="font-bold text-red-600">${formatCurrency(expense.amount)}</span></td>
+          <td class="px-6 py-4">${expense.description}</td>
+          <td class="px-6 py-4">
+            <div class="flex gap-2">
+              <button onclick='editTransaction(${JSON.stringify(expense).replace(/'/g, "&#39;")})' class="px-4 py-2 bg-blue-100 text-blue-600 rounded-lg text-sm font-medium hover:bg-blue-200 transition-colors">
+                ✏️ Edit
+              </button>
+              <button onclick='deleteTransaction(${JSON.stringify(expense).replace(/'/g, "&#39;")})' class="px-4 py-2 bg-red-100 text-red-600 rounded-lg text-sm font-medium hover:bg-red-200 transition-colors">
+                🗑️ Hapus
+              </button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function openIncomeModal() {
+      if (!currentEkstrakurikuler) {
+        showToast('Pilih ekstrakurikuler terlebih dahulu', 'warning');
+        return;
+      }
+
+      currentTransaction = null;
+      document.getElementById('modal-title').textContent = 'Tambah Pemasukan';
+      document.getElementById('transaction-form').reset();
+      document.getElementById('transaction-date').value = new Date().toISOString().split('T')[0];
+      
+      const categorySelect = document.getElementById('transaction-category');
+      categorySelect.innerHTML = `
+        <option value="">Pilih Kategori</option>
+        <option value="Iuran Anggota">Iuran Anggota</option>
+        <option value="Donasi">Donasi</option>
+        <option value="Sponsor">Sponsor</option>
+        <option value="Penjualan">Penjualan</option>
+        <option value="Lainnya">Lainnya</option>
+      `;
+      
+      document.getElementById('transaction-form').onsubmit = (e) => handleSubmit(e, 'income');
+      document.getElementById('transaction-modal').classList.remove('hidden');
+      document.getElementById('transaction-modal').classList.add('flex');
+    }
+
+    function openExpenseModal() {
+      if (!currentEkstrakurikuler) {
+        showToast('Pilih ekstrakurikuler terlebih dahulu', 'warning');
+        return;
+      }
+
+      currentTransaction = null;
+      document.getElementById('modal-title').textContent = 'Tambah Pengeluaran';
+      document.getElementById('transaction-form').reset();
+      document.getElementById('transaction-date').value = new Date().toISOString().split('T')[0];
+      
+      const categorySelect = document.getElementById('transaction-category');
+      categorySelect.innerHTML = `
+        <option value="">Pilih Kategori</option>
+        <option value="Peralatan">Peralatan</option>
+        <option value="Konsumsi">Konsumsi</option>
+        <option value="Transport">Transport</option>
+        <option value="Seragam">Seragam</option>
+        <option value="Lomba">Lomba</option>
+        <option value="Lainnya">Lainnya</option>
+      `;
+      
+      document.getElementById('transaction-form').onsubmit = (e) => handleSubmit(e, 'expense');
+      document.getElementById('transaction-modal').classList.remove('hidden');
+      document.getElementById('transaction-modal').classList.add('flex');
+    }
+
+    function editTransaction(transaction) {
+      currentTransaction = transaction;
+      document.getElementById('modal-title').textContent = transaction.type === 'income' ? 'Edit Pemasukan' : 'Edit Pengeluaran';
+      
+      document.getElementById('transaction-date').value = transaction.date;
+      document.getElementById('transaction-amount').value = transaction.amount;
+      document.getElementById('transaction-description').value = transaction.description;
+      document.getElementById('transaction-proof').value = transaction.proof_url || '';
+      
+      const categorySelect = document.getElementById('transaction-category');
+      if (transaction.type === 'income') {
+        categorySelect.innerHTML = `
+          <option value="">Pilih Kategori</option>
+          <option value="Iuran Anggota">Iuran Anggota</option>
+          <option value="Donasi">Donasi</option>
+          <option value="Sponsor">Sponsor</option>
+          <option value="Penjualan">Penjualan</option>
+          <option value="Lainnya">Lainnya</option>
+        `;
+      } else {
+        categorySelect.innerHTML = `
+          <option value="">Pilih Kategori</option>
+          <option value="Peralatan">Peralatan</option>
+          <option value="Konsumsi">Konsumsi</option>
+          <option value="Transport">Transport</option>
+          <option value="Seragam">Seragam</option>
+          <option value="Lomba">Lomba</option>
+          <option value="Lainnya">Lainnya</option>
+        `;
+      }
+      categorySelect.value = transaction.category;
+      
+      document.getElementById('transaction-form').onsubmit = (e) => handleSubmit(e, transaction.type);
+      document.getElementById('transaction-modal').classList.remove('hidden');
+      document.getElementById('transaction-modal').classList.add('flex');
+    }
+
+    async function handleSubmit(e, type) {
+      e.preventDefault();
+      
+      if (allTransactions.length >= 999 && !currentTransaction) {
+        showToast('Batas maksimum 999 transaksi telah tercapai. Hapus beberapa transaksi terlebih dahulu.', 'error');
+        return;
+      }
+
+      const submitBtn = document.getElementById('submit-btn');
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '⏳ Menyimpan...';
+
+      const data = {
+        type: type,
+        date: document.getElementById('transaction-date').value,
+        category: document.getElementById('transaction-category').value,
+        amount: parseFloat(document.getElementById('transaction-amount').value),
+        description: document.getElementById('transaction-description').value,
+        proof_url: document.getElementById('transaction-proof').value || '',
+        ekstrakurikuler: currentEkstrakurikuler,
+        created_at: new Date().toISOString()
+      };
+
+      let result;
+      if (currentTransaction) {
+        result = await window.dataSdk.update({ ...currentTransaction, ...data });
+      } else {
+        data.id = Date.now().toString();
+        result = await window.dataSdk.create(data);
+      }
+
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '   Simpan';
+
+      if (result.isOk) {
+        showToast(currentTransaction ? 'Transaksi berhasil diperbarui' : 'Transaksi berhasil ditambahkan', 'success');
+        closeModal();
+      } else {
+        showToast('Gagal menyimpan transaksi', 'error');
+      }
+    }
+
+    function deleteTransaction(transaction) {
+      transactionToDelete = transaction;
+      document.getElementById('delete-confirmation').classList.remove('hidden');
+      document.getElementById('delete-confirmation').classList.add('flex');
+    }
+
+    async function confirmDelete() {
+      const confirmBtn = document.getElementById('confirm-delete-btn');
+      confirmBtn.disabled = true;
+      confirmBtn.innerHTML = '⏳ Menghapus...';
+
+      const result = await window.dataSdk.delete(transactionToDelete);
+
+      confirmBtn.disabled = false;
+      confirmBtn.innerHTML = '🗑️ Hapus';
+
+      if (result.isOk) {
+        showToast('Transaksi berhasil dihapus', 'success');
+        cancelDelete();
+      } else {
+        showToast('Gagal menghapus transaksi', 'error');
+      }
+    }
+
+    function cancelDelete() {
+      transactionToDelete = null;
+      document.getElementById('delete-confirmation').classList.add('hidden');
+      document.getElementById('delete-confirmation').classList.remove('flex');
+    }
+
+    function closeModal() {
+      currentTransaction = null;
+      document.getElementById('transaction-modal').classList.add('hidden');
+      document.getElementById('transaction-modal').classList.remove('flex');
+    }
+
+    function filterTransactions(type) {
+      const dateFilter = document.getElementById(`${type}-date-filter`).value;
+      const categoryFilter = document.getElementById(`${type}-category-filter`).value;
+
+      const filtered = getFilteredTransactions().filter(t => {
+        if (t.type !== type) return false;
+        if (dateFilter && t.date !== dateFilter) return false;
+        if (categoryFilter && t.category !== categoryFilter) return false;
+        return true;
+      });
+
+      const tbody = document.getElementById(`${type}-table-body`);
+      
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-12 text-center text-gray-500"><div class="text-5xl mb-3">🔍</div><p class="text-lg">Tidak ada data yang sesuai filter</p></td></tr>';
+        return;
+      }
+
+      const color = type === 'income' ? 'green' : 'red';
+      tbody.innerHTML = filtered.map(item => `
+        <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+          <td class="px-6 py-4">${formatDate(item.date)}</td>
+          <td class="px-6 py-4"><span class="badge" style="background-color: ${type === 'income' ? '#d1fae5' : '#fee2e2'}; color: ${type === 'income' ? '#065f46' : '#991b1b'}">${item.category}</span></td>
+          <td class="px-6 py-4"><span class="font-bold text-${color}-600">${formatCurrency(item.amount)}</span></td>
+          <td class="px-6 py-4">${item.description}</td>
+          <td class="px-6 py-4">
+            <div class="flex gap-2">
+              <button onclick='editTransaction(${JSON.stringify(item).replace(/'/g, "&#39;")})' class="px-4 py-2 bg-blue-100 text-blue-600 rounded-lg text-sm font-medium hover:bg-blue-200 transition-colors">
+                ✏️ Edit
+              </button>
+              <button onclick='deleteTransaction(${JSON.stringify(item).replace(/'/g, "&#39;")})' class="px-4 py-2 bg-red-100 text-red-600 rounded-lg text-sm font-medium hover:bg-red-200 transition-colors">
+                🗑️ Hapus
+              </button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function clearFilter(type) {
+      document.getElementById(`${type}-date-filter`).value = '';
+      document.getElementById(`${type}-category-filter`).value = '';
+      if (type === 'income') {
+        renderIncomeTable();
+      } else {
+        renderExpenseTable();
+      }
+    }
+
+    function generateReport() {
+      if (!currentEkstrakurikuler) return;
+
+      const monthInput = document.getElementById('report-month').value;
+      const [year, month] = monthInput.split('-').map(Number);
+
+      const monthlyTransactions = getFilteredTransactions().filter(t => {
+        const date = new Date(t.date);
+        return date.getMonth() === month - 1 && date.getFullYear() === year;
+      });
+
+      const income = monthlyTransactions
+        .filter(t => t.type === 'income')
+        .reduce((sum, t) => sum + t.amount, 0);
+
+      const expense = monthlyTransactions
+        .filter(t => t.type === 'expense')
+        .reduce((sum, t) => sum + t.amount, 0);
+
+      const balance = income - expense;
+
+      document.getElementById('report-income').textContent = formatCurrency(income);
+      document.getElementById('report-expense').textContent = formatCurrency(expense);
+      document.getElementById('report-balance').textContent = formatCurrency(balance);
+
+      renderReportChart(income, expense);
+      renderReportDetails(monthlyTransactions);
+    }
+
+    function renderReportChart(income, expense) {
+      const ctx = document.getElementById('report-chart');
+      
+      if (reportChart) {
+        reportChart.destroy();
+      }
+
+      reportChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Pemasukan', 'Pengeluaran'],
+          datasets: [{
+            data: [income, expense],
+            backgroundColor: ['#10b981', '#ef4444'],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                padding: 20,
+                font: {
+                  size: 14
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function renderReportDetails(transactions) {
+      const detailsDiv = document.getElementById('report-details');
+      
+      if (transactions.length === 0) {
+        detailsDiv.innerHTML = '<div class="text-center py-12 text-gray-500"><div class="text-5xl mb-3">📭</div><p class="text-lg">Tidak ada transaksi pada bulan ini</p></div>';
+        return;
+      }
+
+      const incomes = transactions.filter(t => t.type === 'income');
+      const expenses = transactions.filter(t => t.type === 'expense');
+
+      detailsDiv.innerHTML = `
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div>
+            <h4 class="text-xl font-bold mb-4 flex items-center gap-2 text-green-600">
+              <span>💰</span> Pemasukan (${incomes.length})
+            </h4>
+            ${incomes.length > 0 ? `
+              <div class="space-y-3">
+                ${incomes.map(t => `
+                  <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded-r-lg">
+                    <div class="flex justify-between items-start flex-wrap gap-2">
+                      <div>
+                        <div class="font-semibold text-gray-800">${t.category}</div>
+                        <div class="text-sm text-gray-600">${formatDate(t.date)}</div>
+                        <div class="text-sm text-gray-700 mt-1">${t.description}</div>
+                      </div>
+                      <div class="text-xl font-bold text-green-600">${formatCurrency(t.amount)}</div>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            ` : '<p class="text-gray-500 italic">Tidak ada pemasukan</p>'}
+          </div>
+          <div>
+            <h4 class="text-xl font-bold mb-4 flex items-center gap-2 text-red-600">
+              <span>💸</span> Pengeluaran (${expenses.length})
+            </h4>
+            ${expenses.length > 0 ? `
+              <div class="space-y-3">
+                ${expenses.map(t => `
+                  <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg">
+                    <div class="flex justify-between items-start flex-wrap gap-2">
+                      <div>
+                        <div class="font-semibold text-gray-800">${t.category}</div>
+                        <div class="text-sm text-gray-600">${formatDate(t.date)}</div>
+                        <div class="text-sm text-gray-700 mt-1">${t.description}</div>
+                      </div>
+                      <div class="text-xl font-bold text-red-600">${formatCurrency(t.amount)}</div>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            ` : '<p class="text-gray-500 italic">Tidak ada pengeluaran</p>'}
+          </div>
+        </div>
+      `;
+    }
+
+    function exportToPDF() {
+      if (!currentEkstrakurikuler) {
+        showToast('Pilih ekstrakurikuler terlebih dahulu', 'warning');
+        return;
+      }
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      
+      const monthInput = document.getElementById('report-month').value;
+      const [year, month] = monthInput.split('-').map(Number);
+      const monthName = new Date(year, month - 1).toLocaleString('id-ID', { month: 'long', year: 'numeric' });
+      
+      const income = document.getElementById('report-income').textContent;
+      const expense = document.getElementById('report-expense').textContent;
+      const balance = document.getElementById('report-balance').textContent;
+
+      doc.setFontSize(16);
+      doc.text('SIMKEU', 105, 15, { align: 'center' });
+      
+      doc.setFontSize(14);
+      doc.text('LAPORAN KEUANGAN BULANAN', 105, 25, { align: 'center' });
+      
+      doc.setFontSize(11);
+      doc.text(`Ekstrakurikuler: ${currentEkstrakurikuler}`, 105, 32, { align: 'center' });
+      doc.text(`Periode: ${monthName}`, 105, 38, { align: 'center' });
+      
+      doc.setLineWidth(0.5);
+      doc.line(20, 42, 190, 42);
+      
+      doc.setFontSize(12);
+      doc.text('RINGKASAN KEUANGAN:', 20, 52);
+      
+      doc.setFontSize(11);
+      doc.text(`Total Pemasukan:`, 30, 62);
+      doc.text(income, 120, 62);
+      
+      doc.text(`Total Pengeluaran:`, 30, 70);
+      doc.text(expense, 120, 70);
+      
+      doc.setLineWidth(0.3);
+      doc.line(30, 74, 160, 74);
+      
+      doc.setFontSize(12);
+      doc.text(`Saldo Akhir:`, 30, 82);
+      doc.text(balance, 120, 82);
+      
+      doc.setFontSize(9);
+      doc.text(`Tanggal Cetak: ${formatDate(new Date().toISOString().split('T')[0])}`, 20, 270);
+      doc.text(`Dicetak oleh: Sistem Keuangan Ekstrakurikuler`, 20, 275);
+      
+      doc.save(`Laporan-${currentEkstrakurikuler}-${monthName.replace(' ', '-')}.pdf`);
+      showToast('PDF berhasil diekspor', 'success');
+    }
+
+    function formatCurrency(amount) {
+      return 'Rp ' + amount.toLocaleString('id-ID');
+    }
+
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+
+    function showToast(message, type = 'info') {
+      const toast = document.getElementById('toast');
+      const toastMessage = document.getElementById('toast-message');
+      const toastIcon = document.getElementById('toast-icon');
+      
+      toastMessage.textContent = message;
+      
+      if (type === 'success') {
+        toast.style.backgroundColor = '#10b981';
+        toast.style.color = 'white';
+        toastIcon.textContent = '✅';
+      } else if (type === 'error') {
+        toast.style.backgroundColor = '#ef4444';
+        toast.style.color = 'white';
+        toastIcon.textContent = '❌';
+      } else if (type === 'warning') {
+        toast.style.backgroundColor = '#f59e0b';
+        toast.style.color = 'white';
+        toastIcon.textContent = '⚠️';
+      } else {
+        toast.style.backgroundColor = '#3b82f6';
+        toast.style.color = 'white';
+        toastIcon.textContent = 'ℹ️';
+      }
+      
+      toast.classList.remove('hidden');
+      
+      setTimeout(() => {
+        toast.classList.add('hidden');
+      }, 3000);
+    }
+
+    document.addEventListener('DOMContentLoaded', initializeApp);
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a15c824675cfd1e',t:'MTc2MzYxOTAwMS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
